@@ -8,6 +8,7 @@ out vec4 color;
 
 uniform vec3 u_light;
 uniform vec3 specular_color;
+uniform float alpha;
 uniform sampler2D ambient_tex;
 uniform sampler2D diffuse_tex;
 
@@ -21,5 +22,5 @@ void main() {
     vec3 half_direction = normalize(normalize(u_light) + camera_dir);
     float specular = pow(max(dot(half_direction, normalize(v_normal)), 0.0), 16.0);
 
-    color = vec4(ambient_color + diffuse * diffuse_color + specular * specular_color, 1.0);
+    color = vec4(ambient_color + diffuse * diffuse_color + specular * specular_color, alpha);
 }
