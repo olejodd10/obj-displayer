@@ -111,8 +111,13 @@ fn main() {
             
     let params = glium::DrawParameters {
         depth: glium::Depth {
-            test: glium::draw_parameters::DepthTest::IfLess,
+            test: config::DEPTH_TEST,
             write: true,
+            .. Default::default()
+        },
+        blend: glium::draw_parameters::Blend {
+            color: config::BLENDING_FUNCTION,
+            alpha: config::BLENDING_FUNCTION,
             .. Default::default()
         },
         .. Default::default()
@@ -162,7 +167,7 @@ fn main() {
         *control_flow = glutin::event_loop::ControlFlow::WaitUntil(next_frame_time);
 
         let mut target = display.draw();
-        target.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0); // Black background
+        target.clear_color_and_depth((config::BACKGROUND_COLOR[0], config::BACKGROUND_COLOR[1], config::BACKGROUND_COLOR[2], config::BACKGROUND_ALPHA), config::BACKGROUND_DEPTH); 
 
         let (width, height) = target.get_dimensions();
 
