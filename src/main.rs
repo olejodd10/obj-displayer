@@ -4,6 +4,7 @@ extern crate glium;
 extern crate image;
 
 mod matrices;
+mod vectors;
 mod material;
 mod shaders;
 mod vertex;
@@ -17,7 +18,7 @@ use std::rc::Rc;
 // Switch to storing Rc<StoredMaterial> if materials are reused (unlikely)
 
 fn main() {
-    use glium::{glutin, Surface};
+    use glium::{glutin::{self, event::VirtualKeyCode}, Surface};
 
     let event_loop = glutin::event_loop::EventLoop::new();
     let wb = glutin::window::WindowBuilder::new();
@@ -33,6 +34,8 @@ fn main() {
     let mut model_materials: [Vec<Vec<(material::MaterialClass, Option<material::StoredMaterial>)>>; config::NUM_MODELS] = Default::default(); 
     let mut model_programs: [Vec<Vec<Rc<glium::Program>>>; config::NUM_MODELS] = Default::default();
 
+    let mut camera_pos = config::CAMERA_POS_INIT;
+    let mut camera_dir = config::CAMERA_DIR_INIT;
     for i in 0..config::NUM_MODELS {
         // Store model matrix
         // *In a dynamic world these model matrices would be continuously calculated based on time step and translational and rotational velocities
@@ -105,8 +108,6 @@ fn main() {
             model_programs[i].push(object_programs);
         }   
     }
-
-    let view = matrices::view(&config::CAMERA_POS, &config::CAMERA_DIR, &config::CAMERA_UP);
             
     let params = glium::DrawParameters {
         depth: glium::Depth {
@@ -123,6 +124,28 @@ fn main() {
                 glutin::event::WindowEvent::CloseRequested => {
                     *control_flow = glutin::event_loop::ControlFlow::Exit;
                     return;
+                },
+                glutin::event::WindowEvent::KeyboardInput { input, .. } => match input.virtual_keycode {
+                    Some(keycode) => match keycode {
+                        VirtualKeyCode::W => camera_pos = vectors::increment(camera_pos, camera_dir, config::MOVEMENT_SPEED),
+                        VirtualKeyCode::A => camera_pos = vectors::increment(camera_pos, vectors::negate(vectors::cross_product(config::CAMERA_UP, camera_dir)), config::MOVEMENT_SPEED),
+                        VirtualKeyCode::S => camera_pos = vectors::increment(camera_pos, vectors::negate(camera_dir), config::MOVEMENT_SPEED),
+                        VirtualKeyCode::D => camera_pos = vectors::increment(camera_pos, vectors::cross_product(config::CAMERA_UP, camera_dir), config::MOVEMENT_SPEED),
+                        VirtualKeyCode::Space => camera_pos = vectors::increment(camera_pos, config::CAMERA_UP, config::MOVEMENT_SPEED),
+                        VirtualKeyCode::LShift => camera_pos = vectors::increment(camera_pos, vectors::negate(config::CAMERA_UP), config::MOVEMENT_SPEED),
+                        VirtualKeyCode::Left => camera_dir = vectors::rotate(camera_dir, config::CAMERA_UP, -config::PANNING_SPEED),
+                        VirtualKeyCode::Right => camera_dir = vectors::rotate(camera_dir, config::CAMERA_UP, config::PANNING_SPEED),
+                        VirtualKeyCode::Up if vectors::angle(camera_dir, config::CAMERA_UP) > config::ANGLE_LIMIT => {
+                            let left = vectors::negate(vectors::cross_product(config::CAMERA_UP, camera_dir));
+                            camera_dir = vectors::rotate(camera_dir, left, config::PANNING_SPEED);
+                        },
+                        VirtualKeyCode::Down if vectors::angle(camera_dir, vectors::negate(config::CAMERA_UP)) > config::ANGLE_LIMIT => {
+                            let right = vectors::cross_product(config::CAMERA_UP, camera_dir);
+                            camera_dir = vectors::rotate(camera_dir, right, config::PANNING_SPEED);
+                        },
+                        _ => return,
+                    },
+                    _ => return,
                 },
                 _ => return,
             },
@@ -142,6 +165,8 @@ fn main() {
         target.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0); // Black background
 
         let (width, height) = target.get_dimensions();
+
+        let view = matrices::view(&camera_pos, &camera_dir, &config::CAMERA_UP);
         let perspective = matrices::perspective(width, height);
 
         for i in 0..config::NUM_MODELS { 
