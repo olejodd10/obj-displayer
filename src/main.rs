@@ -190,13 +190,13 @@ fn main() {
                         material::MaterialClass::OnlyDiffuse => {
                             let mtl = mtl.unwrap();
                             target.draw(&model_vertices[i][j][k], glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), model_programs[i][j][k].as_ref(),
-                            &uniform! { model: models[i], view: view, perspective: perspective, u_light: config::LIGHT, ambient_color: mtl.ka, diffuse_color: mtl.kd, specular_color: mtl.ks, ambient_tex: mtl.map_ka.as_ref().unwrap(), diffuse_tex: mtl.map_kd.as_ref().unwrap() },
+                            &uniform! { model: models[i], view: view, perspective: perspective, u_light: config::LIGHT, specular_color: mtl.ks, ambient_tex: mtl.map_ka.as_ref().unwrap(), diffuse_tex: mtl.map_kd.as_ref().unwrap() },
                             &params).unwrap();
                         },
                         material::MaterialClass::Complete => {
                             let mtl = mtl.unwrap();
                             target.draw(&model_vertices[i][j][k], glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), model_programs[i][j][k].as_ref(),
-                            &uniform! { model: models[i], view: view, perspective: perspective, u_light: config::LIGHT, ambient_color: mtl.ka, diffuse_color: mtl.kd, specular_color: mtl.ks, ambient_tex: mtl.map_ka.as_ref().unwrap(), diffuse_tex: mtl.map_kd.as_ref().unwrap(), specular_tex: mtl.map_ks.as_ref().unwrap() },
+                            &uniform! { model: models[i], view: view, perspective: perspective, u_light: config::LIGHT, ambient_tex: mtl.map_ka.as_ref().unwrap(), diffuse_tex: mtl.map_kd.as_ref().unwrap(), specular_tex: mtl.map_ks.as_ref().unwrap() },
                             &params).unwrap();
                         },
                     }
